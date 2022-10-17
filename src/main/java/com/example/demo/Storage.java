@@ -9,18 +9,18 @@ import java.util.Map;
 
 public class Storage {
     // points for spending
-    private Integer totalPoints = 0;
+    private Integer incomingPoints = 0;
     // points per payer
     private Map<String, Integer> payerPoints = new HashMap<>();
     //
-    private List<Transaction> transactions = new ArrayList<>();
+    private List<Transaction> transactionsArr = new ArrayList<>();
 
-    public int getTotalPoints() {
-        return totalPoints;
+    public int getIncomingPoints() {
+        return incomingPoints;
     }
 
-    public void setTotalPoints(int totalPoints) {
-        this.totalPoints = totalPoints;
+    public void setIncomingPoints(int incomingPoints) {
+        this.incomingPoints = incomingPoints;
     }
 
     public Map<String, Integer> getPayerPoints() {
@@ -31,11 +31,11 @@ public class Storage {
         this.payerPoints = payerPoints;
     }
 
-    public List<Transaction> getTransactions() {
-        return transactions;
+    public List<Transaction> getTransactionsArr() {
+        return transactionsArr;
     }
 
     public void addTransaction(Transaction transactions) {
-        this.transactions.add(transactions);
+        this.transactionsArr.add(transactions);
     }
 }
