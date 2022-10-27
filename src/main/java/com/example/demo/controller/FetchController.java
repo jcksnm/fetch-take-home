@@ -1,58 +1,46 @@
 package com.example.demo.controller;
-
 import com.example.demo.Storage;
+import com.example.demo.Transaction;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/")
 public class FetchController {
 
-    private Storage storage = new Storage();
+    private final Storage storage = new Storage();
 
     //route for returning all payer point balances
     @GetMapping(value = "points", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> points() {
-        return ResponseEntity.ok(storage.getPayerPoints());
+        return ResponseEntity.ok(new TreeMap<>(storage.getPayerPoints()));
     }
 
-    //route for adding transactions
-    //BUG: if this route is run more than once with the same transaction, the condition on line 44 executes.
+    //route for adding a single transaction
     @PostMapping(value = "add", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> add(@RequestBody Transaction transaction){
-        String payer = transaction.getPayer();
-        Integer points = transaction.getPoints();
-        Map<String, Integer> payerPointsMap = storage.getPayerPoints();
-        Integer payerPoints = payerPointsMap.get(payer);
-        if (payerPoints == null) {
-            payerPointsMap.put(payer, points);
+        if (transaction != null) {
+            storage.add(transaction);
             return ResponseEntity.ok(transaction);
         } else {
-            if (payerPoints > Math.abs(points)) {
-                payerPoints += points;
-                payerPointsMap.put(payer, payerPoints);
-                storage.addTransaction(transaction);
-                return ResponseEntity.ok(transaction);
-            }
+            return ResponseEntity.badRequest().body("Transaction failed, point totals cannot be negative.");
         }
-        return ResponseEntity.badRequest().body("Transaction failed, point totals cannot be negative.");
     }
 
+    //route for adding multiple transactions at once
+    @PostMapping(value = "addAll", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> addAll(@RequestBody List<Transaction> transactions) {
+        List<Transaction> results = storage.addAll(transactions);
+        results.sort(Comparator.comparing(Transaction::getTimestamp).reversed());
+        return ResponseEntity.ok(results);
+    }
+
+    //route for spending points
     @PostMapping(value = "spend", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> spend(@RequestBody Transaction transaction){
-/*
-        Integer points = transaction.getPoints();
-        storage.setIncomingPoints(points);
-        List<Transaction> transactionsArr = storage.getTransactionsArr();
-*/
-        return ResponseEntity.ok(transaction.getPoints());
-
-
+    public ResponseEntity<?> spend(@RequestBody Map<String, Integer> body) {
+        Map<String, Integer> totalMap = storage.spend(body.get("points"));
+        return ResponseEntity.ok(totalMap);
     }
 }
