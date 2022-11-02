@@ -25,7 +25,7 @@ public class Storage {
             pointTransactions.add(transaction);
             return transaction;
         }
-        return null;
+        return transaction;
     }
 
     public List<Transaction> addAll(List<Transaction> transactions) {
